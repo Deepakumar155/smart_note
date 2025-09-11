@@ -48,10 +48,11 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('content-change', ({ docId, content }) => {
-    if (!docId) return;
-    socket.to(`doc:${docId}`).emit('remote-content-change', { content });
-  });
+socket.on('content-change', ({ docId, from, to, text, origin }) => {
+  if (!docId) return;
+  socket.to(`doc:${docId}`).emit('remote-content-change', { from, to, text, origin });
+});
+
 
   socket.on('notes-change', ({ docId, notes }) => {
     if (!docId) return;

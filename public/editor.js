@@ -2,14 +2,6 @@ const socket = io();
 let editor = null;
 let currentDocId = null;
 
-function debounce(fn, t) {
-  let id;
-  return (...args) => {
-    clearTimeout(id);
-    id = setTimeout(() => fn(...args), t);
-  };
-}
-
 window.addEventListener('load', () => {
   editor = CodeMirror.fromTextArea(document.getElementById('code'), {
     lineNumbers: true,
@@ -32,39 +24,44 @@ window.addEventListener('load', () => {
     statusEl.innerText = `Joined document: ${docId}`;
   }
 
+  // Load initial doc
   socket.on('doc-load', ({ content, notes }) => {
     editor.setValue(content || '');
     notesEl.value = notes || '';
   });
 
-  socket.on('remote-content-change', ({ content }) => {
-    if (content !== editor.getValue()) {
-      const cursor = editor.getCursor();
-      editor.setValue(content);
-      editor.setCursor(cursor);
-    }
+  // --- Collaborative editing (CODE) ---
+  editor.on('change', (instance, changeObj) => {
+    if (!currentDocId) return;
+
+    // Send only the diff
+    socket.emit('content-change', {
+      docId: currentDocId,
+      from: changeObj.from,
+      to: changeObj.to,
+      text: changeObj.text,
+      origin: changeObj.origin,
+    });
+  });
+
+  socket.on('remote-content-change', ({ from, to, text, origin }) => {
+    if (!currentDocId) return;
+
+    // Apply remote changes without re-triggering loops
+    editor.replaceRange(text, from, to, origin);
+  });
+
+  // --- Collaborative editing (NOTES) ---
+  notesEl.addEventListener('input', () => {
+    if (!currentDocId) return;
+    socket.emit('notes-change', { docId: currentDocId, notes: notesEl.value });
   });
 
   socket.on('remote-notes-change', ({ notes }) => {
     if (notes !== notesEl.value) notesEl.value = notes;
   });
 
-  socket.on('doc-saved', () => {
-    statusEl.innerText = `Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
-  });
-
-  editor.on('change', debounce(() => {
-    if (!currentDocId) return;
-    socket.emit('content-change', { docId: currentDocId, content: editor.getValue() });
-    autoSave();
-  }, 500));
-
-  notesEl.addEventListener('input', debounce(() => {
-    if (!currentDocId) return;
-    socket.emit('notes-change', { docId: currentDocId, notes: notesEl.value });
-    autoSave();
-  }, 500));
-
+  // --- Save logic ---
   function autoSave() {
     if (!currentDocId) return;
     socket.emit('save-doc', { docId: currentDocId, content: editor.getValue(), notes: notesEl.value });
@@ -72,6 +69,11 @@ window.addEventListener('load', () => {
 
   saveBtn.addEventListener('click', autoSave);
 
+  socket.on('doc-saved', () => {
+    statusEl.innerText = `Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
+  });
+
+  // --- Create / load doc ---
   newDocBtn.addEventListener('click', async () => {
     const customId = prompt('Enter custom Document ID:');
     if (!customId) return;
