@@ -1,17 +1,14 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Collab Editor</title>
 <link rel="stylesheet" href="editor.css">
 
-<!-- CodeMirror 5 via CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
-
-<!-- Socket.io -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
@@ -19,14 +16,14 @@
 <div class="topbar">
   <h1>Smart Collab Editor</h1>
   <div class="controls">
-    <input id="docIdInput" placeholder="Document ID (or leave blank to create)" />
-    <button id="newDocBtn">Create</button>
-    <button id="loadDocBtn">Open</button>
+    <button id="newDocBtn">Create New Doc</button>
+    <input id="docIdInput" placeholder="Document ID">
+    <button id="loadDocBtn">Open Doc</button>
     <button id="saveBtn">Save</button>
   </div>
 </div>
 
-<div id="status" style="padding:5px 10px; font-size:0.9em; color:green;"></div>
+<div id="status"></div>
 
 <div class="container">
   <div class="editor-area">

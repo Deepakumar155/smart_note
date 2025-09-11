@@ -1,9 +1,7 @@
-// === Editor client: handles creation/opening, socket.io collaboration, save ===
 const socket = io();
 let editor = null;
 let currentDocId = null;
 
-// Debounce helper
 function debounce(fn, t) {
   let id;
   return (...args) => {
@@ -13,7 +11,6 @@ function debounce(fn, t) {
 }
 
 window.addEventListener('load', () => {
-  // --- Initialize CodeMirror ---
   editor = CodeMirror.fromTextArea(document.getElementById('code'), {
     lineNumbers: true,
     mode: 'javascript',
@@ -28,7 +25,6 @@ window.addEventListener('load', () => {
   const docIdInput = document.getElementById('docIdInput');
   const statusEl = document.getElementById('status');
 
-  // --- Join a document ---
   function joinDoc(docId) {
     if (!docId) return;
     currentDocId = docId;
@@ -36,7 +32,6 @@ window.addEventListener('load', () => {
     statusEl.innerText = `Joined document: ${docId}`;
   }
 
-  // --- Socket.io events ---
   socket.on('doc-load', ({ content, notes }) => {
     editor.setValue(content || '');
     notesEl.value = notes || '';
@@ -44,66 +39,57 @@ window.addEventListener('load', () => {
 
   socket.on('remote-content-change', ({ content }) => {
     if (content !== editor.getValue()) {
+      const cursor = editor.getCursor();
       editor.setValue(content);
+      editor.setCursor(cursor);
     }
   });
 
   socket.on('remote-notes-change', ({ notes }) => {
-    if (notes !== notesEl.value) {
-      notesEl.value = notes;
-    }
+    if (notes !== notesEl.value) notesEl.value = notes;
   });
 
   socket.on('doc-saved', () => {
     statusEl.innerText = `Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
   });
 
-  // --- Editor listeners ---
-  editor.on(
-    'change',
-    debounce(() => {
-      if (!currentDocId) return;
-      const content = editor.getValue();
-      socket.emit('content-change', { docId: currentDocId, content });
-      autoSave();
-    }, 500)
-  );
+  editor.on('change', debounce(() => {
+    if (!currentDocId) return;
+    socket.emit('content-change', { docId: currentDocId, content: editor.getValue() });
+    autoSave();
+  }, 500));
 
-  notesEl.addEventListener(
-    'input',
-    debounce(() => {
-      if (!currentDocId) return;
-      const notes = notesEl.value;
-      socket.emit('notes-change', { docId: currentDocId, notes });
-      autoSave();
-    }, 500)
-  );
+  notesEl.addEventListener('input', debounce(() => {
+    if (!currentDocId) return;
+    socket.emit('notes-change', { docId: currentDocId, notes: notesEl.value });
+    autoSave();
+  }, 500));
 
-  // --- Save ---
   function autoSave() {
     if (!currentDocId) return;
-    socket.emit('save-doc', {
-      docId: currentDocId,
-      content: editor.getValue(),
-      notes: notesEl.value,
-    });
+    socket.emit('save-doc', { docId: currentDocId, content: editor.getValue(), notes: notesEl.value });
   }
 
   saveBtn.addEventListener('click', autoSave);
 
-  // --- Create new document ---
   newDocBtn.addEventListener('click', async () => {
+    const customId = prompt('Enter custom Document ID:');
+    if (!customId) return;
     try {
-      const res = await fetch('/api/docs/new', { method: 'POST' });
+      const res = await fetch('/api/docs/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docId: customId }),
+      });
       const doc = await res.json();
-      joinDoc(doc._id);
+      if (res.ok) joinDoc(doc._id);
+      else statusEl.innerText = doc.error || 'Error creating document';
     } catch (err) {
       console.error(err);
       statusEl.innerText = 'Error creating document';
     }
   });
 
-  // --- Load document by ID ---
   loadDocBtn.addEventListener('click', () => {
     const id = docIdInput.value.trim();
     if (id) joinDoc(id);
