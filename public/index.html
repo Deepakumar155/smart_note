@@ -1,40 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart Collab Editor</title>
-<link rel="stylesheet" href="editor.css">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Collab Dashboard</title>
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
+<div class="dashboard">
+  <h1>Smart Collab Editor - Dashboard</h1>
 
-<div class="topbar">
-  <h1>Smart Collab Editor</h1>
-  <div class="controls">
-    <button id="newDocBtn">Create New Doc</button>
-    <input id="docIdInput" placeholder="Document ID">
-    <button id="loadDocBtn">Open Doc</button>
-    <button id="saveBtn">Save</button>
+  <div class="card">
+    <h2>Create Room</h2>
+    <input id="createDocId" placeholder="Enter Room ID">
+    <input id="createPassword" type="password" placeholder="Set Password">
+    <button id="createBtn">Create</button>
   </div>
+
+  <div class="card">
+    <h2>Join Room</h2>
+    <input id="joinDocId" placeholder="Enter Room ID">
+    <input id="joinPassword" type="password" placeholder="Enter Password">
+    <button id="joinBtn">Join</button>
+  </div>
+
+  <p id="status"></p>
 </div>
-
-<div id="status"></div>
-
-<div class="container">
-  <div class="editor-area">
-    <textarea id="code"></textarea>
-  </div>
-  <div class="notes-area">
-    <h3>Notes</h3>
-    <textarea id="notes"></textarea>
-  </div>
-</div>
-
-<script src="editor.js"></script>
+<script src="index.js"></script>
 </body>
 </html>

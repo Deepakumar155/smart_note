@@ -1,6 +1,8 @@
 const socket = io();
 let editor = null;
 let currentDocId = null;
+let currentPassword = null;
+let suppressChange = false;
 
 window.addEventListener('load', () => {
   editor = CodeMirror.fromTextArea(document.getElementById('code'), {
@@ -12,29 +14,30 @@ window.addEventListener('load', () => {
 
   const notesEl = document.getElementById('notes');
   const saveBtn = document.getElementById('saveBtn');
-  const newDocBtn = document.getElementById('newDocBtn');
-  const loadDocBtn = document.getElementById('loadDocBtn');
-  const docIdInput = document.getElementById('docIdInput');
   const statusEl = document.getElementById('status');
 
-  function joinDoc(docId) {
-    if (!docId) return;
+  const params = new URLSearchParams(window.location.search);
+  const docId = params.get('id');
+  const password = params.get('pw');
+
+  if (docId && password) joinDoc(docId, password);
+
+  function joinDoc(docId, password) {
     currentDocId = docId;
-    socket.emit('join-doc', { docId });
-    statusEl.innerText = `Joined document: ${docId}`;
+    currentPassword = password;
+    socket.emit('join-doc', { docId, password });
+    statusEl.innerText = `🔗 Joined document: ${docId}`;
   }
 
-  // Load initial doc
   socket.on('doc-load', ({ content, notes }) => {
+    suppressChange = true;
     editor.setValue(content || '');
+    suppressChange = false;
     notesEl.value = notes || '';
   });
 
-  // --- Collaborative editing (CODE) ---
   editor.on('change', (instance, changeObj) => {
-    if (!currentDocId) return;
-
-    // Send only the diff
+    if (!currentDocId || suppressChange) return;
     socket.emit('content-change', {
       docId: currentDocId,
       from: changeObj.from,
@@ -46,12 +49,11 @@ window.addEventListener('load', () => {
 
   socket.on('remote-content-change', ({ from, to, text, origin }) => {
     if (!currentDocId) return;
-
-    // Apply remote changes without re-triggering loops
+    suppressChange = true;
     editor.replaceRange(text, from, to, origin);
+    suppressChange = false;
   });
 
-  // --- Collaborative editing (NOTES) ---
   notesEl.addEventListener('input', () => {
     if (!currentDocId) return;
     socket.emit('notes-change', { docId: currentDocId, notes: notesEl.value });
@@ -61,7 +63,6 @@ window.addEventListener('load', () => {
     if (notes !== notesEl.value) notesEl.value = notes;
   });
 
-  // --- Save logic ---
   function autoSave() {
     if (!currentDocId) return;
     socket.emit('save-doc', { docId: currentDocId, content: editor.getValue(), notes: notesEl.value });
@@ -70,30 +71,10 @@ window.addEventListener('load', () => {
   saveBtn.addEventListener('click', autoSave);
 
   socket.on('doc-saved', () => {
-    statusEl.innerText = `Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
+    statusEl.innerText = `✅ Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
   });
 
-  // --- Create / load doc ---
-  newDocBtn.addEventListener('click', async () => {
-    const customId = prompt('Enter custom Document ID:');
-    if (!customId) return;
-    try {
-      const res = await fetch('/api/docs/new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docId: customId }),
-      });
-      const doc = await res.json();
-      if (res.ok) joinDoc(doc._id);
-      else statusEl.innerText = doc.error || 'Error creating document';
-    } catch (err) {
-      console.error(err);
-      statusEl.innerText = 'Error creating document';
-    }
-  });
-
-  loadDocBtn.addEventListener('click', () => {
-    const id = docIdInput.value.trim();
-    if (id) joinDoc(id);
+  socket.on('error-msg', (msg) => {
+    statusEl.innerText = `❌ ${msg}`;
   });
 });

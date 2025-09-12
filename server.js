@@ -34,25 +34,28 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 io.on('connection', socket => {
   console.log('⚡ Socket connected:', socket.id);
 
-  socket.on('join-doc', async ({ docId }) => {
-    if (!docId) return;
+  socket.on('join-doc', async ({ docId, password }) => {
+    if (!docId || !password) return;
+
     try {
-      const doc = await Document.findById(docId).exec();
-      if (!doc) return socket.emit('error', { message: 'Document not found' });
+      const doc = await Document.findOne({ roomId: docId }).exec();
+      if (!doc) return socket.emit('error-msg', 'Document not found');
+
+      const valid = await doc.comparePassword(password);
+      if (!valid) return socket.emit('error-msg', 'Invalid password');
 
       socket.join(`doc:${docId}`);
       socket.emit('doc-load', { content: doc.content, notes: doc.notes, language: doc.language });
     } catch (err) {
       console.error('join-doc error:', err);
-      socket.emit('error', { message: 'Invalid document ID' });
+      socket.emit('error-msg', 'Failed to join document');
     }
   });
 
-socket.on('content-change', ({ docId, from, to, text, origin }) => {
-  if (!docId) return;
-  socket.to(`doc:${docId}`).emit('remote-content-change', { from, to, text, origin });
-});
-
+  socket.on('content-change', ({ docId, from, to, text, origin }) => {
+    if (!docId) return;
+    socket.to(`doc:${docId}`).emit('remote-content-change', { from, to, text, origin });
+  });
 
   socket.on('notes-change', ({ docId, notes }) => {
     if (!docId) return;
@@ -62,11 +65,14 @@ socket.on('content-change', ({ docId, from, to, text, origin }) => {
   socket.on('save-doc', async ({ docId, content, notes }) => {
     if (!docId) return;
     try {
-      await Document.findByIdAndUpdate(docId, { content, notes, updatedAt: Date.now() }).exec();
+      await Document.findOneAndUpdate(
+        { roomId: docId },
+        { content, notes, updatedAt: Date.now() }
+      ).exec();
       io.in(`doc:${docId}`).emit('doc-saved');
     } catch (err) {
       console.error('save-doc error:', err);
-      socket.emit('error', { message: 'Failed to save document' });
+      socket.emit('error-msg', 'Failed to save document');
     }
   });
 

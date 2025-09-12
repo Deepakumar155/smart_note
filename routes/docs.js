@@ -2,33 +2,22 @@ const express = require('express');
 const router = express.Router();
 const Document = require('../models/Document');
 
-// Create new document with custom ID
+// Create new document
 router.post('/new', async (req, res) => {
-  const { docId } = req.body;
-  if (!docId) return res.status(400).json({ error: 'Document ID is required' });
-  if (!/^[\w-]+$/.test(docId)) return res.status(400).json({ error: 'Invalid Document ID' });
+  const { docId, password } = req.body;
+  if (!docId || !password) return res.status(400).json({ error: 'Room ID and password required' });
 
   try {
-    const exists = await Document.findById(docId).exec();
-    if (exists) return res.status(400).json({ error: 'Document ID already exists' });
+    const existing = await Document.findOne({ roomId: docId }).exec();
+    if (existing) return res.status(400).json({ error: 'Room ID already exists' });
 
-    const newDoc = await Document.create({ _id: docId });
-    res.json(newDoc);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create document' });
-  }
-});
+    const doc = new Document({ roomId: docId, password });
+    await doc.save();
 
-// Optional: get a document by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const doc = await Document.findById(req.params.id).exec();
-    if (!doc) return res.status(404).json({ error: 'Document not found' });
-    res.json(doc);
+    res.json({ ok: true, doc });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch document' });
+    console.error('Create doc error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

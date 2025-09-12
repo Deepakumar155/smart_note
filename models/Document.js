@@ -1,12 +1,24 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const DocumentSchema = new mongoose.Schema({
-  _id: { type: String }, // custom document ID
+  roomId: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
   content: { type: String, default: '' },
   notes: { type: String, default: '' },
   language: { type: String, default: 'javascript' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
+}, { timestamps: true });
+
+// Hash password before save
+DocumentSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
+
+// Compare password
+DocumentSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('Document', DocumentSchema);
