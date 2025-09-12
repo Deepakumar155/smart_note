@@ -101,4 +101,15 @@ themeToggle.addEventListener('click', () => {
     navLinks.classList.toggle("active");
     hamburger.classList.toggle("open");
   });
+  const notesBtn = document.getElementById("notesBtn");
+  const notesPanel = document.getElementById("notesPanel");
+  const closeNotes = document.getElementById("closeNotes");
 
+  notesBtn.addEventListener("click", () => {
+    notesPanel.classList.add("open");
+  });
+
+  closeNotes.addEventListener("click", () => {
+    notesPanel.classList.remove("open");
+  });
+  

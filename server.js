@@ -24,11 +24,57 @@ app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
 app.use(express.json());
 
 // --- Routes ---
-app.use('/api/docs', require('./routes/docs'));
+const router = express.Router();
+
+// Create new document
+router.post('/new', async (req, res) => {
+  try {
+    const { docId, password } = req.body;
+    if (!docId || !password) {
+      return res.status(400).json({ error: "Room ID and Password required" });
+    }
+
+    const exists = await Document.findOne({ roomId: docId }).exec();
+    if (exists) return res.status(409).json({ error: "Room ID already exists" });
+
+    const doc = new Document({ roomId: docId, password });
+    await doc.save();
+
+    res.json({ ok: true, roomId: docId });
+  } catch (err) {
+    console.error("Create room error:", err);
+    res.status(500).json({ error: "Failed to create room" });
+  }
+});
+
+// Join existing document (validate credentials)
+router.post('/join', async (req, res) => {
+  try {
+    const { docId, password } = req.body;
+    if (!docId || !password) {
+      return res.status(400).json({ error: "Room ID and Password required" });
+    }
+
+    const doc = await Document.findOne({ roomId: docId }).exec();
+    if (!doc) return res.status(404).json({ error: "Room not found" });
+
+    const valid = await doc.comparePassword(password);
+    if (!valid) return res.status(401).json({ error: "Invalid password" });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Join room error:", err);
+    res.status(500).json({ error: "Failed to join room" });
+  }
+});
+
+app.use('/api/docs', router);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('*', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+);
 
 // --- Socket.IO ---
 io.on('connection', socket => {
@@ -45,7 +91,11 @@ io.on('connection', socket => {
       if (!valid) return socket.emit('error-msg', 'Invalid password');
 
       socket.join(`doc:${docId}`);
-      socket.emit('doc-load', { content: doc.content, notes: doc.notes, language: doc.language });
+      socket.emit('doc-load', {
+        content: doc.content,
+        notes: doc.notes,
+        language: doc.language,
+      });
     } catch (err) {
       console.error('join-doc error:', err);
       socket.emit('error-msg', 'Failed to join document');
@@ -79,5 +129,6 @@ io.on('connection', socket => {
   socket.on('disconnect', () => console.log('❌ Socket disconnected:', socket.id));
 });
 
+// --- Start Server ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

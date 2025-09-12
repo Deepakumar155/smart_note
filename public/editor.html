@@ -12,16 +12,13 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-  <body>
-  <!-- Navigation -->
+<!-- Navigation -->
 <nav class="navbar">
-  <div class="logo">Smart Collab</div>
-
+  <div class="logo">Smart Collab Editor</div>
   <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="about.html">About</a></li>
+    <li><a href="editor.html">Home</a></li>
+    <li><a href="About.html">About</a></li>
     <button id="themeToggle">🌙 Dark Mode</button>
-
   </ul>
 
   <!-- Hamburger menu -->
@@ -33,9 +30,9 @@
 </nav>
 
 <div class="topbar">
-  <h1>Smart Collab Editor</h1>
   <div class="controls">
     <button id="saveBtn">Save</button>
+    <button id="notesBtn">📝 Notes</button>
   </div>
 </div>
 
@@ -45,12 +42,18 @@
   <div class="editor-area">
     <textarea id="code"></textarea>
   </div>
-  <div class="notes-area">
+</div>
+
+<!-- Sliding Notes Panel -->
+<div class="notes-panel" id="notesPanel">
+  <div class="notes-header">
     <h3>Notes</h3>
-    <textarea id="notes"></textarea>
+    <button id="closeNotes">✖</button>
   </div>
+  <textarea id="notes"></textarea>
 </div>
 
 <script src="editor.js"></script>
+
 </body>
 </html>

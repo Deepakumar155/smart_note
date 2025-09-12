@@ -1,0 +1,180 @@
+/* ================================
+   About Page Theme (Sky Blue)
+================================ */
+:root {
+  --primary: #4da6ff;      /* Sky Blue */
+  --primary-dark: #1e90ff; /* Darker Blue */
+  --secondary: #e6f4ff;    /* Light Blue Background */
+  --text-dark: #222;
+  --card-bg: #ffffff;
+  --transition: all 0.3s ease;
+}
+
+/* Dark Mode (if needed later) */
+.dark-mode {
+  --primary: #0d47a1;
+  --primary-dark: #1565c0;
+  --secondary: #121212;
+  --text-dark: #eee;
+  --card-bg: #1e1e1e;
+}
+
+/* Global */
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: var(--secondary);
+  color: var(--text-dark);
+  transition: var(--transition);
+}
+
+/* Navbar (shared look) */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  padding: 12px 30px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar .logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  position: relative;
+  transition: var(--transition);
+}
+
+.nav-links li a::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  background: white;
+  left: 0;
+  bottom: -5px;
+  transition: var(--transition);
+}
+
+.nav-links li a:hover::after {
+  width: 100%;
+}
+
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 4px;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 65px;
+    right: -200px;
+    background: var(--primary-dark);
+    flex-direction: column;
+    width: 180px;
+    padding: 20px;
+    border-radius: 0 0 10px 10px;
+    transition: var(--transition);
+  }
+
+  .nav-links.active {
+    right: 0;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+/* ================================
+   About Container
+================================ */
+.about-container {
+  max-width: 900px;
+  margin: 60px auto;
+  background: var(--card-bg);
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  animation: fadeInUp 0.8s ease;
+  transition: var(--transition);
+}
+
+.about-container h1 {
+  text-align: center;
+  font-size: 28px;
+  color: var(--primary-dark);
+  margin-bottom: 20px;
+}
+
+.about-container p {
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 18px;
+  color: var(--text-dark);
+  text-align: justify;
+}
+
+.about-container strong {
+  color: var(--primary-dark);
+}
+
+.author {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
