@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Smart Collab Editor</title>
+  <link rel="stylesheet" href="editor.css">
+  <style>
+    .about-container {
+      max-width: 800px;
+      margin: 80px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .about-container h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .about-container p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .about-container .author {
+      margin-top: 25px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #2c7be5;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #2c7be5;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .back-btn:hover {
+      background: #1a5db5;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: var(--navbar-bg);
+  color: #fff;
+  position: relative;
+}
+
+.navbar .logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-links li a:hover {
+  color: #f39c12;
+}
+
+/* Hamburger (hidden on desktop) */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: #fff;
+  border-radius: 3px;
+  transition: 0.3s;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 65px;
+    left: 0;
+    width: 100%;
+    background: var(--navbar-bg);
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 0;
+    display: none; /* hidden by default */
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+<nav class="navbar">
+  <div class="logo">Smart Collab</div>
+
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+
+  </ul>
+
+  <!-- Hamburger menu -->
+  <div class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</nav>
+  <div class="about-container">
+    <h1>About Smart Collab Editor</h1>
+    <p>
+      Smart Collab Editor is a real-time collaborative code editor with built-in notes.  
+      Multiple users can work together seamlessly on the same document, with instant updates.  
+      The editor is designed for developers, students, and teams who want to code, share, and collaborate effectively.
+    </p>
+    <p>
+      The project uses <strong>Node.js, Express, Socket.IO, MongoDB, and CodeMirror</strong>  
+      to deliver a smooth collaboration experience.
+    </p>
+
+    <div class="author">
+      👨‍💻 Created by <span style="color:#e63946;">Deepakumar</span>
+    </div>
+  </div>
+  <script>
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.querySelector(".nav-links");
+
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("active");
+    hamburger.classList.toggle("open");
+  });
+</script>
+
+
+</body>
+</html>

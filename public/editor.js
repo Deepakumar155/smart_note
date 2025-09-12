@@ -78,3 +78,27 @@ window.addEventListener('load', () => {
     statusEl.innerText = `❌ ${msg}`;
   });
 });
+const themeToggle = document.getElementById('themeToggle');
+const root = document.documentElement;
+
+// Load saved preference
+if (localStorage.getItem('theme') === 'dark') {
+  root.classList.add('dark-mode');
+  themeToggle.textContent = '☀️ Light Mode';
+}
+
+themeToggle.addEventListener('click', () => {
+  root.classList.toggle('dark-mode');
+  const isDark = root.classList.contains('dark-mode');
+  themeToggle.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+});
+
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.querySelector(".nav-links");
+
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("active");
+    hamburger.classList.toggle("open");
+  });
+

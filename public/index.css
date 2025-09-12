@@ -124,3 +124,34 @@ button:hover {
     width: 100%;
   }
 }
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background: var(--navbar-bg);
+    color: #fff;
+}
+
+.navbar .logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+}
+
+.nav-links li a:hover {
+    color: #f39c12;
+}
+
