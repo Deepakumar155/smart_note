@@ -2,13 +2,15 @@
    Root Theme Variables
 ================================ */
 :root {
-  --primary: #4da6ff;      /* Sky Blue */
-  --primary-dark: #1e90ff; /* Darker Blue */
-  --secondary: #e6f4ff;    /* Light Blue Background */
+  --primary: #4da6ff;       /* Sky Blue */
+  --primary-dark: #1e90ff;  /* Darker Blue */
+  --secondary: #e6f4ff;     /* Light Blue Background */
   --text-dark: #222;
   --text-light: #fff;
   --card-bg: #ffffff;
   --transition: all 0.3s ease;
+  --border-radius: 10px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* Dark Mode */
@@ -18,11 +20,16 @@
   --secondary: #121212;
   --text-dark: #eee;
   --card-bg: #1e1e1e;
+  --shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 /* ================================
    Global Styles
 ================================ */
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: "Segoe UI", sans-serif;
   margin: 0;
@@ -45,16 +52,18 @@ h1, h3 {
   background: linear-gradient(90deg, var(--primary), var(--primary-dark));
   padding: 12px 30px;
   color: var(--text-light);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow);
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: var(--transition);
 }
 
 .navbar .logo {
   font-size: 20px;
   font-weight: bold;
   letter-spacing: 1px;
+  cursor: default;
 }
 
 .nav-links {
@@ -69,6 +78,7 @@ h1, h3 {
   color: var(--text-light);
   font-weight: 500;
   position: relative;
+  transition: var(--transition);
 }
 
 .nav-links li a::after {
@@ -100,130 +110,134 @@ h1, h3 {
 #themeToggle:hover {
   background: var(--primary-dark);
   color: white;
-}
-
-/* Hamburger Menu */
-.hamburger {
-  display: none;
-  flex-direction: column;
-  cursor: pointer;
-  gap: 4px;
-}
-
-.hamburger span {
-  width: 25px;
-  height: 3px;
-  background: white;
-  border-radius: 2px;
-  transition: var(--transition);
-}
-
-.hamburger.open span:nth-child(1) {
-  transform: rotate(45deg) translateY(8px);
-}
-.hamburger.open span:nth-child(2) {
-  opacity: 0;
-}
-.hamburger.open span:nth-child(3) {
-  transform: rotate(-45deg) translateY(-8px);
-}
-
-/* Responsive Nav */
-@media (max-width: 768px) {
-  .nav-links {
-    position: absolute;
-    top: 65px;
-    right: -200px;
-    background: var(--primary-dark);
-    flex-direction: column;
-    width: 180px;
-    padding: 20px;
-    border-radius: 0 0 10px 10px;
-  }
-
-  .nav-links.active {
-    right: 0;
-  }
-
-  .hamburger {
-    display: flex;
-  }
-}
-
-/* ================================
-   Top Bar
-================================ */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--card-bg);
-  padding: 15px 25px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 10px;
-  transition: var(--transition);
-}
-
-.topbar h1 {
-  font-size: 22px;
-}
-
-.controls button {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  margin-left: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.controls button:hover {
-  background: var(--primary-dark);
   transform: scale(1.05);
 }
 
 /* ================================
-   Status Bar
+   File Explorer & Editor Workspace
 ================================ */
+.workspace {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.file-explorer {
+  width: 220px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 15px;
+  transition: var(--transition);
+}
+
+.file-explorer h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.file-explorer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-explorer li {
+  padding: 6px 10px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.file-explorer li:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.file-explorer li[style*="font-weight: bold"] {
+  background: var(--primary-dark);
+  color: white;
+}
+
+.file-explorer input {
+  width: calc(100% - 20px);
+  padding: 6px 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.file-explorer input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(77,166,255,0.5);
+}
+
+.file-explorer button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.file-explorer button:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.editor-area {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-bottom: 1px solid #ccc;
+  transition: var(--transition);
+}
+
 #status {
   text-align: center;
-  margin: 8px 0;
   font-size: 14px;
   font-style: italic;
   color: var(--primary-dark);
 }
 
 /* ================================
-   Editor Container
+   CodeMirror Styling
 ================================ */
-.container {
-  display: flex;
-  justify-content: center;
-  padding: 15px;
-}
-
-.editor-area {
-  width: 100%;
-  max-width: 900px;
-  background: var(--card-bg);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: var(--transition);
-}
-
-/* CodeMirror Styling */
 .CodeMirror {
-  border-radius: 10px;
+  border-radius: var(--border-radius);
   border: 1px solid #d0e7ff;
   font-size: 14px;
   transition: var(--transition);
+  height: 600px;
+}
+
+.CodeMirror-focused {
+  outline: none;
+  box-shadow: 0 0 10px rgba(77,166,255,0.5);
 }
 
 /* ================================
-   Notes Panel (Sliding)
+   Notes Panel
 ================================ */
 .notes-panel {
   position: fixed;
@@ -234,7 +248,7 @@ h1, h3 {
   background: var(--card-bg);
   box-shadow: -4px 0 12px rgba(0,0,0,0.2);
   border-left: 3px solid var(--primary);
-  transition: var(--transition);
+  transition: right 0.4s ease, box-shadow 0.4s ease;
   display: flex;
   flex-direction: column;
   z-index: 2000;
@@ -242,6 +256,12 @@ h1, h3 {
 
 .notes-panel.open {
   right: 0;
+  animation: slideIn 0.4s forwards;
+}
+
+@keyframes slideIn {
+  from { right: -350px; opacity: 0; }
+  to { right: 0; opacity: 1; }
 }
 
 .notes-header {
@@ -251,6 +271,7 @@ h1, h3 {
   padding: 12px;
   background: var(--primary);
   color: white;
+  border-top-left-radius: var(--border-radius);
 }
 
 #notes {
@@ -264,8 +285,12 @@ h1, h3 {
   transition: var(--transition);
 }
 
+.notes-panel textarea:focus {
+  box-shadow: 0 0 10px rgba(77,166,255,0.5);
+}
+
 /* ================================
-   Scrollbar
+   Scrollbars
 ================================ */
 ::-webkit-scrollbar {
   width: 8px;
@@ -279,3 +304,84 @@ h1, h3 {
 ::-webkit-scrollbar-track {
   background: #f0f8ff;
 }
+
+/* ================================
+   Button Hover Animations
+================================ */
+button, #themeToggle {
+  transition: all 0.3s ease;
+}
+
+button:hover, #themeToggle:hover {
+  transform: scale(1.05);
+}
+/* Workspace Flex */
+.workspace {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* File Explorer (Left Sidebar) */
+.file-explorer {
+  width: 220px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+
+/* Editor Container (Right) */
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar inside Editor Container */
+.editor-topbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+  transition: var(--transition);
+}
+
+.editor-topbar button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.editor-topbar button:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+#status {
+  margin-left: 20px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--primary-dark);
+}
+
+/* Editor Area */
+.CodeMirror {
+  height: 600px;
+  border-radius: var(--border-radius);
+  border: 1px solid #d0e7ff;
+  font-size: 14px;
+}
+

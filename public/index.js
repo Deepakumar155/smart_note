@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
   createBtn.addEventListener('click', async () => {
     const docId = document.getElementById('createDocId').value.trim();
     const password = document.getElementById('createPassword').value.trim();
-    if (!docId || !password) {
-      statusEl.innerText = "Room ID and Password required";
+    const filename = document.getElementById('createFileName').value.trim();
+
+    if (!docId || !password || !filename) {
+      statusEl.innerText = "Room ID, Password, and Filename required";
       return;
     }
 
@@ -16,13 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/docs/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docId, password }),
+        body: JSON.stringify({ docId, password, filename }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Redirect to editor only if room created successfully
-        window.location.href = `/editor.html?id=${docId}&pw=${encodeURIComponent(password)}`;
+        window.location.href = `/editor.html?id=${docId}&pw=${encodeURIComponent(password)}&file=${encodeURIComponent(filename)}`;
       } else {
         statusEl.innerText = data.error || "Error creating room";
       }
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   joinBtn.addEventListener('click', async () => {
     const docId = document.getElementById('joinDocId').value.trim();
     const password = document.getElementById('joinPassword').value.trim();
+
     if (!docId || !password) {
       statusEl.innerText = "Room ID and Password required";
       return;
@@ -50,10 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Only redirect if credentials are valid
-        window.location.href = `/editor.html?id=${docId}&pw=${encodeURIComponent(password)}`;
+        const firstFile = data.files[0];
+        window.location.href = `/editor.html?id=${docId}&pw=${encodeURIComponent(password)}&file=${encodeURIComponent(firstFile)}`;
       } else {
-        // ❌ Invalid room/password, do not redirect
         statusEl.innerText = data.error || "Invalid Room ID or Password";
       }
     } catch (err) {

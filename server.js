@@ -14,7 +14,7 @@ const io = new Server(server, {
   cors: { origin: process.env.CLIENT_URL || '*', methods: ['GET', 'POST'] },
 });
 
-// --- MongoDB ---
+// --- MongoDB Connection ---
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
@@ -23,48 +23,71 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
 app.use(express.json());
 
-// --- Routes ---
+// --- API Routes ---
 const router = express.Router();
 
-// Create new document
+// Create room with custom initial filename
 router.post('/new', async (req, res) => {
   try {
-    const { docId, password } = req.body;
-    if (!docId || !password) {
-      return res.status(400).json({ error: "Room ID and Password required" });
+    const { docId, password, filename } = req.body;
+    if (!docId || !password || !filename) {
+      return res.status(400).json({ error: "Room ID, Password, and Filename required" });
     }
 
-    const exists = await Document.findOne({ roomId: docId }).exec();
+    const exists = await Document.findOne({ roomId: docId });
     if (exists) return res.status(409).json({ error: "Room ID already exists" });
 
-    const doc = new Document({ roomId: docId, password });
+    const doc = new Document({
+      roomId: docId,
+      password,
+      files: [{ filename, content: '', language: 'javascript' }]
+    });
     await doc.save();
 
-    res.json({ ok: true, roomId: docId });
+    res.json({ ok: true, roomId: docId, file: filename });
   } catch (err) {
-    console.error("Create room error:", err);
+    console.error(err);
     res.status(500).json({ error: "Failed to create room" });
   }
 });
 
-// Join existing document (validate credentials)
+// Join room
 router.post('/join', async (req, res) => {
   try {
     const { docId, password } = req.body;
-    if (!docId || !password) {
-      return res.status(400).json({ error: "Room ID and Password required" });
-    }
-
-    const doc = await Document.findOne({ roomId: docId }).exec();
+    const doc = await Document.findOne({ roomId: docId });
     if (!doc) return res.status(404).json({ error: "Room not found" });
 
     const valid = await doc.comparePassword(password);
     if (!valid) return res.status(401).json({ error: "Invalid password" });
 
-    res.json({ ok: true });
+    res.json({ ok: true, files: doc.files.map(f => f.filename) });
   } catch (err) {
-    console.error("Join room error:", err);
+    console.error(err);
     res.status(500).json({ error: "Failed to join room" });
+  }
+});
+
+// Add new file
+router.post('/:roomId/files', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { filename, language } = req.body;
+
+    const doc = await Document.findOne({ roomId });
+    if (!doc) return res.status(404).json({ error: "Room not found" });
+
+    if (doc.files.find(f => f.filename === filename)) {
+      return res.status(409).json({ error: "File already exists" });
+    }
+
+    doc.files.push({ filename, language: language || 'javascript' });
+    await doc.save();
+
+    res.json({ ok: true, file: filename });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add file" });
   }
 });
 
@@ -80,48 +103,42 @@ app.get('*', (req, res) =>
 io.on('connection', socket => {
   console.log('⚡ Socket connected:', socket.id);
 
-  socket.on('join-doc', async ({ docId, password }) => {
-    if (!docId || !password) return;
-
+  socket.on('join-doc', async ({ docId, password, filename }) => {
     try {
-      const doc = await Document.findOne({ roomId: docId }).exec();
+      const doc = await Document.findOne({ roomId: docId });
       if (!doc) return socket.emit('error-msg', 'Document not found');
 
       const valid = await doc.comparePassword(password);
       if (!valid) return socket.emit('error-msg', 'Invalid password');
 
-      socket.join(`doc:${docId}`);
-      socket.emit('doc-load', {
-        content: doc.content,
-        notes: doc.notes,
-        language: doc.language,
-      });
+      const file = doc.files.find(f => f.filename === filename);
+      if (!file) return socket.emit('error-msg', 'File not found');
+
+      socket.join(`doc:${docId}:${filename}`);
+      socket.emit('doc-load', file);
     } catch (err) {
-      console.error('join-doc error:', err);
+      console.error(err);
       socket.emit('error-msg', 'Failed to join document');
     }
   });
 
-  socket.on('content-change', ({ docId, from, to, text, origin }) => {
-    if (!docId) return;
-    socket.to(`doc:${docId}`).emit('remote-content-change', { from, to, text, origin });
+  socket.on('content-change', ({ docId, filename, from, to, text, origin }) => {
+    socket.to(`doc:${docId}:${filename}`).emit('remote-content-change', { from, to, text, origin });
   });
 
-  socket.on('notes-change', ({ docId, notes }) => {
-    if (!docId) return;
-    socket.to(`doc:${docId}`).emit('remote-notes-change', { notes });
+  socket.on('notes-change', ({ docId, filename, notes }) => {
+    socket.to(`doc:${docId}:${filename}`).emit('remote-notes-change', { notes });
   });
 
-  socket.on('save-doc', async ({ docId, content, notes }) => {
-    if (!docId) return;
+  socket.on('save-doc', async ({ docId, filename, content, notes }) => {
     try {
-      await Document.findOneAndUpdate(
-        { roomId: docId },
-        { content, notes, updatedAt: Date.now() }
-      ).exec();
-      io.in(`doc:${docId}`).emit('doc-saved');
+      await Document.updateOne(
+        { roomId: docId, "files.filename": filename },
+        { $set: { "files.$.content": content, "files.$.notes": notes, "files.$.updatedAt": Date.now() } }
+      );
+      io.in(`doc:${docId}:${filename}`).emit('doc-saved');
     } catch (err) {
-      console.error('save-doc error:', err);
+      console.error(err);
       socket.emit('error-msg', 'Failed to save document');
     }
   });
@@ -129,6 +146,6 @@ io.on('connection', socket => {
   socket.on('disconnect', () => console.log('❌ Socket disconnected:', socket.id));
 });
 
-// --- Start Server ---
+// --- Start server ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

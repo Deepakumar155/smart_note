@@ -1,8 +1,5 @@
 const socket = io();
-let editor = null;
-let currentDocId = null;
-let currentPassword = null;
-let suppressChange = false;
+let editor, currentDocId, currentPassword, currentFilename, suppressChange = false;
 
 window.addEventListener('load', () => {
   editor = CodeMirror.fromTextArea(document.getElementById('code'), {
@@ -12,72 +9,113 @@ window.addEventListener('load', () => {
   });
   editor.setSize('100%', '80%');
 
-  const notesEl = document.getElementById('notes');
-  const saveBtn = document.getElementById('saveBtn');
   const statusEl = document.getElementById('status');
+  const notesEl = document.getElementById('notes');
+  const fileList = document.getElementById('fileList');
+  const addFileBtn = document.getElementById('addFileBtn');
+  const newFileName = document.getElementById('newFileName');
 
   const params = new URLSearchParams(window.location.search);
-  const docId = params.get('id');
-  const password = params.get('pw');
+  currentDocId = params.get('id');
+  currentPassword = params.get('pw');
+  currentFilename = params.get('file') || "main.js";
 
-  if (docId && password) joinDoc(docId, password);
-
-  function joinDoc(docId, password) {
-    currentDocId = docId;
-    currentPassword = password;
-    socket.emit('join-doc', { docId, password });
-    statusEl.innerText = `🔗 Joined document: ${docId}`;
+  if (currentDocId && currentPassword) {
+    socket.emit('join-doc', { docId: currentDocId, password: currentPassword, filename: currentFilename });
+    statusEl.innerText = `🔗 Joined ${currentDocId}/${currentFilename}`;
   }
 
-  socket.on('doc-load', ({ content, notes }) => {
+  // --- File Handling ---
+  async function loadFiles() {
+    const res = await fetch(`/api/docs/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docId: currentDocId, password: currentPassword }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      fileList.innerHTML = '';
+      data.files.forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = f;
+        li.onclick = () => switchFile(f);
+        if (f === currentFilename) li.style.fontWeight = 'bold';
+        fileList.appendChild(li);
+      });
+    }
+  }
+
+  async function addFile() {
+    const filename = newFileName.value.trim();
+    if (!filename) return;
+    await fetch(`/api/docs/${currentDocId}/files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename }),
+    });
+    newFileName.value = '';
+    loadFiles();
+  }
+
+  async function switchFile(filename) {
+    currentFilename = filename;
+    socket.emit('join-doc', { docId: currentDocId, password: currentPassword, filename });
+    statusEl.innerText = `🔗 Switched to ${filename}`;
+    loadFiles();
+  }
+
+  addFileBtn.addEventListener('click', addFile);
+  loadFiles();
+
+  // --- Socket Events ---
+  socket.on('doc-load', ({ content, notes, filename }) => {
     suppressChange = true;
     editor.setValue(content || '');
     suppressChange = false;
     notesEl.value = notes || '';
+    currentFilename = filename;
+    loadFiles();
   });
 
   editor.on('change', (instance, changeObj) => {
-    if (!currentDocId || suppressChange) return;
-    socket.emit('content-change', {
-      docId: currentDocId,
-      from: changeObj.from,
-      to: changeObj.to,
-      text: changeObj.text,
-      origin: changeObj.origin,
-    });
+    if (!currentDocId || !currentFilename || suppressChange) return;
+    socket.emit('content-change', { docId: currentDocId, filename: currentFilename, ...changeObj });
   });
 
   socket.on('remote-content-change', ({ from, to, text, origin }) => {
-    if (!currentDocId) return;
     suppressChange = true;
     editor.replaceRange(text, from, to, origin);
     suppressChange = false;
   });
 
   notesEl.addEventListener('input', () => {
-    if (!currentDocId) return;
-    socket.emit('notes-change', { docId: currentDocId, notes: notesEl.value });
+    if (!currentFilename) return;
+    socket.emit('notes-change', { docId: currentDocId, filename: currentFilename, notes: notesEl.value });
   });
 
   socket.on('remote-notes-change', ({ notes }) => {
     if (notes !== notesEl.value) notesEl.value = notes;
   });
 
-  function autoSave() {
-    if (!currentDocId) return;
-    socket.emit('save-doc', { docId: currentDocId, content: editor.getValue(), notes: notesEl.value });
-  }
-
-  saveBtn.addEventListener('click', autoSave);
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    socket.emit('save-doc', { docId: currentDocId, filename: currentFilename, content: editor.getValue(), notes: notesEl.value });
+  });
 
   socket.on('doc-saved', () => {
-    statusEl.innerText = `✅ Document ${currentDocId} saved at ${new Date().toLocaleTimeString()}`;
+    statusEl.innerText = `✅ Saved ${currentFilename} at ${new Date().toLocaleTimeString()}`;
   });
 
-  socket.on('error-msg', (msg) => {
-    statusEl.innerText = `❌ ${msg}`;
+  socket.on('error-msg', msg => statusEl.innerText = `❌ ${msg}`);
+
+  // Notes toggle
+  document.getElementById("notesBtn").addEventListener("click", () => {
+    document.getElementById("notesPanel").classList.add("open");
+  });
+  document.getElementById("closeNotes").addEventListener("click", () => {
+    document.getElementById("notesPanel").classList.remove("open");
   });
 });
+
 const themeToggle = document.getElementById('themeToggle');
 const root = document.documentElement;
 
