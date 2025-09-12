@@ -115,6 +115,41 @@ window.addEventListener('load', () => {
     document.getElementById("notesPanel").classList.remove("open");
   });
 });
+const uploadBtn = document.getElementById("uploadBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const fileInput = document.getElementById("fileInput");
+
+// Upload File
+uploadBtn.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("password", currentPassword);
+
+  const res = await fetch(`/api/docs/${currentDocId}/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (data.ok) {
+    statusEl.innerText = `✅ Uploaded ${file.name}`;
+    loadFiles();
+  } else {
+    statusEl.innerText = `❌ Upload failed: ${data.error}`;
+  }
+});
+
+// Download File
+downloadBtn.addEventListener("click", () => {
+  if (!currentFilename) return;
+  window.open(`/api/docs/${currentDocId}/download/${currentFilename}?password=${currentPassword}`);
+});
+
 
 const themeToggle = document.getElementById('themeToggle');
 const root = document.documentElement;
@@ -150,4 +185,30 @@ themeToggle.addEventListener('click', () => {
   closeNotes.addEventListener("click", () => {
     notesPanel.classList.remove("open");
   });
-  
+  const runBtn = document.getElementById("runBtn");
+const terminalOutput = document.getElementById("terminalOutput");
+const languageSelect = document.getElementById("languageSelect");
+
+runBtn.addEventListener("click", () => {
+  if (!currentFilename) return;
+  const language = languageSelect.value;
+
+  socket.emit("run-code", {
+    filename: currentFilename,
+    content: editor.getValue(),
+    language
+  });
+
+  terminalOutput.textContent = "⏳ Running...\n";
+});
+
+socket.on("terminal-output", (msg) => {
+  terminalOutput.textContent += msg;
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+});
+runBtn.addEventListener("click", () => {
+  if (!currentDocId || !currentFilename) return;
+  const code = editor.getValue();
+  terminalOutput.textContent += `\n▶ Running ${currentFilename}...\n`;
+  socket.emit("run-code", { docId: currentDocId, filename: currentFilename, content: code });
+});

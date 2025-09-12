@@ -21,25 +21,40 @@
   </ul>
 </nav>
 
-<div class="workspace">
-  <!-- File Explorer -->
-  <div class="file-explorer">
-    <h3>📂 Files</h3>
-    <ul id="fileList"></ul>
-    <input id="newFileName" placeholder="newfile.js">
-    <button id="addFileBtn">+ New File</button>
+  <div class="workspace">
+    <!-- File Explorer -->
+    <div class="file-explorer">
+      <h3>📂 Files</h3>
+      <ul id="fileList"></ul>
+      <input id="newFileName" placeholder="newfile.js">
+      <button id="addFileBtn">+ New File</button>
+    </div>
+
+    <!-- Editor Section -->
+    <div class="editor-container">
+      <div class="editor-topbar">
+        <button id="saveBtn">💾 Save</button>
+        <button id="uploadBtn">📤 Upload</button>
+        <button id="downloadBtn">📥 Download</button>
+        <button id="notesBtn">📝 Notes</button>
+        <span id="status"></span>
+        <!-- Terminal Panel -->
+<div class="terminal" id="terminal">
+  <div class="terminal-header">
+    <span>🖥️ Terminal</span>
+    <button id="runBtn">▶ Run</button>
+    <button id="clearTerminal">🧹 Clear</button>
+  </div>
+  <pre id="terminalOutput"></pre>
+</div>
+
+      </div>
+      <textarea id="code"></textarea>
+    </div>
   </div>
 
-  <!-- Editor Section -->
-  <div class="editor-container">
-    <div class="editor-topbar">
-      <button id="saveBtn">💾 Save</button>
-      <button id="notesBtn">📝 Notes</button>
-      <span id="status"></span>
-    </div>
-    <textarea id="code"></textarea>
-  </div>
-</div>
+  <!-- Hidden file input for upload -->
+  <input type="file" id="fileInput" style="display:none;">
 
 <!-- Notes Panel -->
 <div class="notes-panel" id="notesPanel">
