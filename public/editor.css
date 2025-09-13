@@ -4,12 +4,12 @@
 :root {
   --primary: #4da6ff;       /* Sky Blue */
   --primary-dark: #1e90ff;  /* Darker Blue */
-  --secondary: #e6f4ff;     /* Light Blue Background */
+  --secondary: #f9f9f9;     /* Light Background */
   --text-dark: #222;
   --text-light: #fff;
   --card-bg: #ffffff;
   --transition: all 0.3s ease;
-  --border-radius: 10px;
+  --border-radius: 12px;
   --shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -28,14 +28,18 @@
 ================================ */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   font-family: "Segoe UI", sans-serif;
-  margin: 0;
   background: var(--secondary);
   color: var(--text-dark);
   transition: var(--transition);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 h1, h3 {
@@ -50,50 +54,36 @@ h1, h3 {
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-  padding: 12px 30px;
+  padding: 12px 20px;
   color: var(--text-light);
   box-shadow: var(--shadow);
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: var(--transition);
 }
 
 .navbar .logo {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   letter-spacing: 1px;
-  cursor: default;
 }
 
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 20px;
-  transition: var(--transition);
+  gap: 15px;
+  align-items: center;
 }
 
 .nav-links li a {
   text-decoration: none;
   color: var(--text-light);
   font-weight: 500;
-  position: relative;
   transition: var(--transition);
 }
 
-.nav-links li a::after {
-  content: "";
-  position: absolute;
-  width: 0;
-  height: 2px;
-  background: white;
-  left: 0;
-  bottom: -5px;
-  transition: var(--transition);
-}
-
-.nav-links li a:hover::after {
-  width: 100%;
+.nav-links li a:hover {
+  text-decoration: underline;
 }
 
 #themeToggle {
@@ -114,33 +104,37 @@ h1, h3 {
 }
 
 /* ================================
-   File Explorer & Editor Workspace
+   Workspace Layout
 ================================ */
 .workspace {
+  flex: 1;
   display: flex;
   gap: 20px;
   padding: 20px;
-  transition: var(--transition);
 }
 
+/* File Explorer */
 .file-explorer {
   width: 220px;
   background: var(--card-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   padding: 15px;
-  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
 }
 
 .file-explorer h3 {
-  margin-bottom: 12px;
-  font-size: 18px;
+  margin-bottom: 10px;
+  font-size: 16px;
 }
 
 .file-explorer ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .file-explorer li {
@@ -155,36 +149,30 @@ h1, h3 {
   color: white;
 }
 
-.file-explorer li[style*="font-weight: bold"] {
-  background: var(--primary-dark);
-  color: white;
+.file-explorer input,
+.file-explorer button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--border-radius);
+  font-size: 14px;
 }
 
 .file-explorer input {
-  width: calc(100% - 20px);
-  padding: 6px 10px;
-  margin-top: 10px;
   border: 1px solid #ccc;
-  border-radius: var(--border-radius);
-  transition: var(--transition);
 }
 
 .file-explorer input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 8px rgba(77,166,255,0.5);
+  box-shadow: 0 0 6px rgba(77,166,255,0.5);
 }
 
 .file-explorer button {
-  margin-top: 8px;
-  width: 100%;
-  padding: 8px;
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: var(--transition);
 }
 
 .file-explorer button:hover {
@@ -192,48 +180,55 @@ h1, h3 {
   transform: scale(1.05);
 }
 
-.editor-area {
+/* ================================
+   Editor Section
+================================ */
+.editor-container {
   flex: 1;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  transition: var(--transition);
 }
 
-.topbar {
+.editor-topbar {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
-  padding: 10px 15px;
+  padding: 10px;
   background: var(--card-bg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-bottom: 1px solid #ccc;
+  box-shadow: var(--shadow);
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+}
+
+.editor-topbar button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 14px;
+  cursor: pointer;
   transition: var(--transition);
+  font-size: 14px;
+}
+
+.editor-topbar button:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
 }
 
 #status {
-  text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   font-style: italic;
   color: var(--primary-dark);
+  margin-left: auto;
 }
 
-/* ================================
-   CodeMirror Styling
-================================ */
 .CodeMirror {
-  border-radius: var(--border-radius);
+  height: 65vh;
   border: 1px solid #d0e7ff;
+  border-radius: var(--border-radius);
   font-size: 14px;
-  transition: var(--transition);
-  height: 600px;
-}
-
-.CodeMirror-focused {
-  outline: none;
-  box-shadow: 0 0 10px rgba(77,166,255,0.5);
 }
 
 /* ================================
@@ -248,7 +243,7 @@ h1, h3 {
   background: var(--card-bg);
   box-shadow: -4px 0 12px rgba(0,0,0,0.2);
   border-left: 3px solid var(--primary);
-  transition: right 0.4s ease, box-shadow 0.4s ease;
+  transition: right 0.4s ease;
   display: flex;
   flex-direction: column;
   z-index: 2000;
@@ -256,12 +251,6 @@ h1, h3 {
 
 .notes-panel.open {
   right: 0;
-  animation: slideIn 0.4s forwards;
-}
-
-@keyframes slideIn {
-  from { right: -350px; opacity: 0; }
-  to { right: 0; opacity: 1; }
 }
 
 .notes-header {
@@ -281,12 +270,6 @@ h1, h3 {
   outline: none;
   font-size: 14px;
   resize: none;
-  background: white;
-  transition: var(--transition);
-}
-
-.notes-panel textarea:focus {
-  box-shadow: 0 0 10px rgba(77,166,255,0.5);
 }
 
 /* ================================
@@ -306,82 +289,59 @@ h1, h3 {
 }
 
 /* ================================
-   Button Hover Animations
+   Mobile Responsive
 ================================ */
-button, #themeToggle {
-  transition: all 0.3s ease;
+@media (max-width: 900px) {
+  .workspace {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .file-explorer {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .editor-topbar {
+    justify-content: center;
+  }
+
+  .editor-topbar button {
+    flex: 1 1 auto;
+    min-width: 90px;
+  }
+
+  #status {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+    margin-top: 5px;
+  }
 }
 
-button:hover, #themeToggle:hover {
-  transform: scale(1.05);
-}
-/* Workspace Flex */
-.workspace {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-}
+@media (max-width: 500px) {
+  .navbar {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
 
-/* File Explorer (Left Sidebar) */
-.file-explorer {
-  width: 220px;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  transition: var(--transition);
-}
+  .nav-links {
+    flex-direction: column;
+    gap: 10px;
+  }
 
-/* Editor Container (Right) */
-.editor-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+  .file-explorer,
+  .editor-topbar {
+    padding: 10px;
+  }
 
-/* Topbar inside Editor Container */
-.editor-topbar {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
-  background: var(--card-bg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-radius: var(--border-radius);
-  margin-bottom: 10px;
-  transition: var(--transition);
-}
+  .editor-topbar button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 
-.editor-topbar button {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  .CodeMirror {
+    height: 55vh;
+  }
 }
-
-.editor-topbar button:hover {
-  background: var(--primary-dark);
-  transform: scale(1.05);
-}
-
-#status {
-  margin-left: 20px;
-  font-size: 14px;
-  font-style: italic;
-  color: var(--primary-dark);
-}
-
-/* Editor Area */
-.CodeMirror {
-  height: 600px;
-  border-radius: var(--border-radius);
-  border: 1px solid #d0e7ff;
-  font-size: 14px;
-}
-
