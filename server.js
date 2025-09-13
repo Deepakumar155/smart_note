@@ -7,7 +7,7 @@ const path = require("path");
 const { Server } = require("socket.io");
 const multer = require("multer");
 const fs = require("fs");
-const { spawn } = require("child_process");
+const { spawn, spawnSync } = require("child_process");
 
 const Document = require("./models/Document");
 
@@ -220,12 +220,41 @@ io.on("connection", (socket) => {
   });
 
   // === Terminal Execution ===
-  socket.on("run-code", ({ docId, filename, content }) => {
+  socket.on("run-code", ({ filename, content }) => {
     try {
       const filePath = `./temp/${filename}`;
       fs.writeFileSync(filePath, content);
 
-      const run = spawn("node", [filePath]);
+      let command, args;
+
+      if (filename.endsWith(".js")) {
+        command = "node";
+        args = [filePath];
+      } else if (filename.endsWith(".py")) {
+        command = "python3";
+        args = [filePath];
+      } else if (filename.endsWith(".c")) {
+        const exePath = filePath.replace(".c", "");
+        spawnSync("gcc", [filePath, "-o", exePath]);
+        command = exePath;
+        args = [];
+      } else if (filename.endsWith(".cpp")) {
+        const exePath = filePath.replace(".cpp", "");
+        spawnSync("g++", [filePath, "-o", exePath]);
+        command = exePath;
+        args = [];
+      } else if (filename.endsWith(".java")) {
+        const dir = path.dirname(filePath);
+        const base = path.basename(filename, ".java");
+        spawnSync("javac", [filePath]);
+        command = "java";
+        args = ["-cp", dir, base];
+      } else {
+        socket.emit("terminal-output", `❌ Unsupported file type: ${filename}`);
+        return;
+      }
+
+      const run = spawn(command, args);
 
       run.stdout.on("data", (data) => {
         socket.emit("terminal-output", data.toString());
@@ -245,6 +274,24 @@ io.on("connection", (socket) => {
       socket.emit("terminal-output", `❌ Error: ${err.message}`);
     }
   });
+  // Store live HTML files in temp/live folder
+const liveDir = path.join(__dirname, "temp", "live");
+if (!fs.existsSync(liveDir)) fs.mkdirSync(liveDir, { recursive: true });
+
+// Socket event for Go Live
+socket.on("go-live", ({ filename, content }) => {
+  try {
+    const filePath = path.join(liveDir, filename);
+    fs.writeFileSync(filePath, content);
+    socket.emit("terminal-output", `🌐 Live preview ready at /live/${filename}`);
+  } catch (err) {
+    socket.emit("terminal-output", `❌ Go Live error: ${err.message}`);
+  }
+});
+
+// Route to serve live HTML
+app.use("/live", express.static(liveDir));
+
 
   socket.on("disconnect", () =>
     console.log("❌ Socket disconnected:", socket.id)

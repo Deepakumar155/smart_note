@@ -186,29 +186,34 @@ themeToggle.addEventListener('click', () => {
     notesPanel.classList.remove("open");
   });
   const runBtn = document.getElementById("runBtn");
-const terminalOutput = document.getElementById("terminalOutput");
-const languageSelect = document.getElementById("languageSelect");
+const terminal = document.getElementById("terminal");
 
 runBtn.addEventListener("click", () => {
   if (!currentFilename) return;
-  const language = languageSelect.value;
-
+  terminal.innerText = "⏳ Running...\n";
   socket.emit("run-code", {
     filename: currentFilename,
     content: editor.getValue(),
-    language
   });
-
-  terminalOutput.textContent = "⏳ Running...\n";
 });
 
-socket.on("terminal-output", (msg) => {
-  terminalOutput.textContent += msg;
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+socket.on("terminal-output", (data) => {
+  terminal.innerText += data;
+  terminal.scrollTop = terminal.scrollHeight;
 });
-runBtn.addEventListener("click", () => {
-  if (!currentDocId || !currentFilename) return;
-  const code = editor.getValue();
-  terminalOutput.textContent += `\n▶ Running ${currentFilename}...\n`;
-  socket.emit("run-code", { docId: currentDocId, filename: currentFilename, content: code });
+const goLiveBtn = document.getElementById("goLiveBtn");
+
+goLiveBtn.addEventListener("click", () => {
+  if (!currentFilename.endsWith(".html")) {
+    statusEl.innerText = "❌ Go Live works only with .html files";
+    return;
+  }
+
+  socket.emit("go-live", {
+    filename: currentFilename,
+    content: editor.getValue(),
+  });
+  statusEl.innerText = `🚀 Live preview launched for ${currentFilename}`;
+  window.open(`/live/${currentFilename}`, "_blank");
 });
+
