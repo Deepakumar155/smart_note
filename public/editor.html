@@ -45,6 +45,15 @@
       <textarea id="code"></textarea>
     </div>
   </div>
+  <!-- Terminal Output -->
+<div class="terminal-panel" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:#0f0; padding:10px; height:200px; overflow-y:auto; transform:translateY(100%); transition:0.3s;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <strong>⚡ Output</strong>
+    <button id="closeTerminal">✖</button>
+  </div>
+  <pre id="terminal">Output will appear here...</pre>
+</div>
+
 
   <!-- Hidden file input for upload -->
   <input type="file" id="fileInput" style="display:none;">

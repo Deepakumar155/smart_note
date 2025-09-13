@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Collab Editor + Piston</title>
+
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+
+  <!-- CodeMirror JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #editor {
+      border: 2px solid #444;
+      width: 100%;
+      max-width: 800px;
+      height: 400px;
+    }
+    #output {
+      margin-top: 15px;
+      padding: 10px;
+      background: #111;
+      color: #0f0;
+      border: 1px solid #444;
+      width: 100%;
+      max-width: 800px;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #0078ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    button:hover {
+      background: #005bbb;
+    }
+    select {
+      margin-top: 10px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>⚡ Smart Collab Editor + Piston API</h2>
+
+  <!-- Language selector -->
+  <select id="language">
+    <option value="python">Python</option>
+    <option value="javascript">JavaScript</option>
+  </select>
+
+  <!-- Editor -->
+  <textarea id="editor"></textarea>
+
+  <!-- Run button -->
+  <button onclick="runCode()">Run Code</button>
+
+  <!-- Output -->
+  <pre id="output">Output will appear here...</pre>
+
+  <script>
+    // Initialize CodeMirror editor
+    const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+      lineNumbers: true,
+      mode: "python",
+      theme: "dracula"
+    });
+    editor.setSize("100%", "400px");
+
+    // Change language mode dynamically
+    document.getElementById("language").addEventListener("change", (e) => {
+      const lang = e.target.value;
+      editor.setOption("mode", lang === "python" ? "python" : "javascript");
+    });
+
+    // Function to run code via Piston API
+    async function runCode() {
+      const lang = document.getElementById("language").value;
+      const code = editor.getValue();
+
+      document.getElementById("output").innerText = "⏳ Running code...";
+
+      const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language: lang,
+          version: lang === "python" ? "3.10.0" : "18.15.0", // from runtimes list
+          files: [{ name: "main." + (lang === "python" ? "py" : "js"), content: code }]
+        })
+      });
+
+      const result = await response.json();
+      document.getElementById("output").innerText =
+        (result.run.stdout || "") + (result.run.stderr || "");
+    }
+  </script>
+</body>
+</html>

@@ -1,45 +1,50 @@
 const socket = io();
 let editor, currentDocId, currentPassword, currentFilename, suppressChange = false;
+let currentTheme = "dracula"; // Default dark theme
 
-window.addEventListener('load', () => {
-  editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+window.addEventListener("load", () => {
+  editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     lineNumbers: true,
-    mode: 'javascript',
-    theme: 'default',
+    mode: "javascript",
+    theme: currentTheme,
   });
-  editor.setSize('100%', '80%');
+  editor.setSize("100%", "80%");
 
-  const statusEl = document.getElementById('status');
-  const notesEl = document.getElementById('notes');
-  const fileList = document.getElementById('fileList');
-  const addFileBtn = document.getElementById('addFileBtn');
-  const newFileName = document.getElementById('newFileName');
+  const statusEl = document.getElementById("status");
+  const notesEl = document.getElementById("notes");
+  const fileList = document.getElementById("fileList");
+  const addFileBtn = document.getElementById("addFileBtn");
+  const newFileName = document.getElementById("newFileName");
 
   const params = new URLSearchParams(window.location.search);
-  currentDocId = params.get('id');
-  currentPassword = params.get('pw');
-  currentFilename = params.get('file') || "main.js";
+  currentDocId = params.get("id");
+  currentPassword = params.get("pw");
+  currentFilename = params.get("file") || "main.js";
 
   if (currentDocId && currentPassword) {
-    socket.emit('join-doc', { docId: currentDocId, password: currentPassword, filename: currentFilename });
+    socket.emit("join-doc", {
+      docId: currentDocId,
+      password: currentPassword,
+      filename: currentFilename,
+    });
     statusEl.innerText = `🔗 Joined ${currentDocId}/${currentFilename}`;
   }
 
   // --- File Handling ---
   async function loadFiles() {
     const res = await fetch(`/api/docs/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ docId: currentDocId, password: currentPassword }),
     });
     const data = await res.json();
     if (data.ok) {
-      fileList.innerHTML = '';
-      data.files.forEach(f => {
-        const li = document.createElement('li');
+      fileList.innerHTML = "";
+      data.files.forEach((f) => {
+        const li = document.createElement("li");
         li.textContent = f;
         li.onclick = () => switchFile(f);
-        if (f === currentFilename) li.style.fontWeight = 'bold';
+        if (f === currentFilename) li.style.fontWeight = "bold";
         fileList.appendChild(li);
       });
     }
@@ -49,77 +54,100 @@ window.addEventListener('load', () => {
     const filename = newFileName.value.trim();
     if (!filename) return;
     await fetch(`/api/docs/${currentDocId}/files`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filename }),
     });
-    newFileName.value = '';
+    newFileName.value = "";
     loadFiles();
   }
 
   async function switchFile(filename) {
     currentFilename = filename;
-    socket.emit('join-doc', { docId: currentDocId, password: currentPassword, filename });
+    socket.emit("join-doc", {
+      docId: currentDocId,
+      password: currentPassword,
+      filename,
+    });
     statusEl.innerText = `🔗 Switched to ${filename}`;
     loadFiles();
   }
 
-  addFileBtn.addEventListener('click', addFile);
+  addFileBtn.addEventListener("click", addFile);
   loadFiles();
 
   // --- Socket Events ---
-  socket.on('doc-load', ({ content, notes, filename }) => {
+  socket.on("doc-load", ({ content, notes, filename }) => {
     suppressChange = true;
-    editor.setValue(content || '');
+    editor.setValue(content || "");
     suppressChange = false;
-    notesEl.value = notes || '';
+    notesEl.value = notes || "";
     currentFilename = filename;
     loadFiles();
   });
 
-  editor.on('change', (instance, changeObj) => {
+  editor.on("change", (instance, changeObj) => {
     if (!currentDocId || !currentFilename || suppressChange) return;
-    socket.emit('content-change', { docId: currentDocId, filename: currentFilename, ...changeObj });
+    socket.emit("content-change", {
+      docId: currentDocId,
+      filename: currentFilename,
+      ...changeObj,
+    });
   });
 
-  socket.on('remote-content-change', ({ from, to, text, origin }) => {
+  socket.on("remote-content-change", ({ from, to, text, origin }) => {
     suppressChange = true;
     editor.replaceRange(text, from, to, origin);
     suppressChange = false;
   });
 
-  notesEl.addEventListener('input', () => {
+  notesEl.addEventListener("input", () => {
     if (!currentFilename) return;
-    socket.emit('notes-change', { docId: currentDocId, filename: currentFilename, notes: notesEl.value });
+    socket.emit("notes-change", {
+      docId: currentDocId,
+      filename: currentFilename,
+      notes: notesEl.value,
+    });
   });
 
-  socket.on('remote-notes-change', ({ notes }) => {
+  socket.on("remote-notes-change", ({ notes }) => {
     if (notes !== notesEl.value) notesEl.value = notes;
   });
 
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    socket.emit('save-doc', { docId: currentDocId, filename: currentFilename, content: editor.getValue(), notes: notesEl.value });
+  document.getElementById("saveBtn").addEventListener("click", () => {
+    socket.emit("save-doc", {
+      docId: currentDocId,
+      filename: currentFilename,
+      content: editor.getValue(),
+      notes: notesEl.value,
+    });
   });
 
-  socket.on('doc-saved', () => {
+  socket.on("doc-saved", () => {
     statusEl.innerText = `✅ Saved ${currentFilename} at ${new Date().toLocaleTimeString()}`;
   });
 
-  socket.on('error-msg', msg => statusEl.innerText = `❌ ${msg}`);
+  socket.on("error-msg", (msg) => (statusEl.innerText = `❌ ${msg}`));
 
   // Notes toggle
-  document.getElementById("notesBtn").addEventListener("click", () => {
-    document.getElementById("notesPanel").classList.add("open");
+  const notesBtn = document.getElementById("notesBtn");
+  const notesPanel = document.getElementById("notesPanel");
+  const closeNotes = document.getElementById("closeNotes");
+
+  notesBtn.addEventListener("click", () => {
+    notesPanel.classList.add("open");
   });
-  document.getElementById("closeNotes").addEventListener("click", () => {
-    document.getElementById("notesPanel").classList.remove("open");
+
+  closeNotes.addEventListener("click", () => {
+    notesPanel.classList.remove("open");
   });
 });
+
+// --- Upload & Download ---
 const uploadBtn = document.getElementById("uploadBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const fileInput = document.getElementById("fileInput");
 
-// Upload File
 uploadBtn.addEventListener("click", () => fileInput.click());
 
 fileInput.addEventListener("change", async () => {
@@ -144,63 +172,65 @@ fileInput.addEventListener("change", async () => {
   }
 });
 
-// Download File
 downloadBtn.addEventListener("click", () => {
   if (!currentFilename) return;
-  window.open(`/api/docs/${currentDocId}/download/${currentFilename}?password=${currentPassword}`);
+  window.open(
+    `/api/docs/${currentDocId}/download/${currentFilename}?password=${currentPassword}`
+  );
 });
 
-
-const themeToggle = document.getElementById('themeToggle');
-const root = document.documentElement;
-
-// Load saved preference
-if (localStorage.getItem('theme') === 'dark') {
-  root.classList.add('dark-mode');
-  themeToggle.textContent = '☀️ Light Mode';
-}
-
-themeToggle.addEventListener('click', () => {
-  root.classList.toggle('dark-mode');
-  const isDark = root.classList.contains('dark-mode');
-  themeToggle.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
-  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+// --- Theme Toggle ---
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", () => {
+  if (currentTheme === "dracula") {
+    currentTheme = "eclipse"; // white theme
+    themeToggle.textContent = "🌙 Dark Mode";
+  } else {
+    currentTheme = "dracula"; // dark theme
+    themeToggle.textContent = "☀️ Light Mode";
+  }
+  editor.setOption("theme", currentTheme);
 });
 
-  const hamburger = document.getElementById("hamburger");
-  const navLinks = document.querySelector(".nav-links");
-
-  hamburger.addEventListener("click", () => {
-    navLinks.classList.toggle("active");
-    hamburger.classList.toggle("open");
-  });
-  const notesBtn = document.getElementById("notesBtn");
-  const notesPanel = document.getElementById("notesPanel");
-  const closeNotes = document.getElementById("closeNotes");
-
-  notesBtn.addEventListener("click", () => {
-    notesPanel.classList.add("open");
-  });
-
-  closeNotes.addEventListener("click", () => {
-    notesPanel.classList.remove("open");
-  });
-  const runBtn = document.getElementById("runBtn");
+// --- Terminal Online Compiler with Piston API ---
+const runBtn = document.getElementById("runBtn");
 const terminal = document.getElementById("terminal");
+const terminalPanel = document.querySelector(".terminal-panel");
+const closeTerminal = document.getElementById("closeTerminal");
 
-runBtn.addEventListener("click", () => {
+runBtn.addEventListener("click", async () => {
   if (!currentFilename) return;
   terminal.innerText = "⏳ Running...\n";
-  socket.emit("run-code", {
-    filename: currentFilename,
-    content: editor.getValue(),
-  });
+  terminalPanel.style.transform = "translateY(0)";
+
+  let language = "javascript";
+  if (currentFilename.endsWith(".py")) language = "python";
+  if (currentFilename.endsWith(".java")) language = "java";
+
+  try {
+    const res = await fetch("https://emkc.org/api/v2/piston/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        language,
+        version: "*",
+        files: [{ name: currentFilename, content: editor.getValue() }],
+      }),
+    });
+
+    const data = await res.json();
+    terminal.innerText += data.run.stdout || "";
+    if (data.run.stderr) terminal.innerText += "\n⚠️ " + data.run.stderr;
+  } catch (err) {
+    terminal.innerText += "\n❌ Error: " + err.message;
+  }
 });
 
-socket.on("terminal-output", (data) => {
-  terminal.innerText += data;
-  terminal.scrollTop = terminal.scrollHeight;
+closeTerminal.addEventListener("click", () => {
+  terminalPanel.style.transform = "translateY(100%)";
 });
+
+// --- Go Live ---
 const goLiveBtn = document.getElementById("goLiveBtn");
 
 goLiveBtn.addEventListener("click", () => {
@@ -216,4 +246,3 @@ goLiveBtn.addEventListener("click", () => {
   statusEl.innerText = `🚀 Live preview launched for ${currentFilename}`;
   window.open(`/live/${currentFilename}`, "_blank");
 });
-
