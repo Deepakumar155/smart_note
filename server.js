@@ -274,23 +274,6 @@ io.on("connection", (socket) => {
       socket.emit("terminal-output", `❌ Error: ${err.message}`);
     }
   });
-  // Store live HTML files in temp/live folder
-const liveDir = path.join(__dirname, "temp", "live");
-if (!fs.existsSync(liveDir)) fs.mkdirSync(liveDir, { recursive: true });
-
-// Socket event for Go Live
-socket.on("go-live", ({ filename, content }) => {
-  try {
-    const filePath = path.join(liveDir, filename);
-    fs.writeFileSync(filePath, content);
-    socket.emit("terminal-output", `🌐 Live preview ready at /live/${filename}`);
-  } catch (err) {
-    socket.emit("terminal-output", `❌ Go Live error: ${err.message}`);
-  }
-});
-
-// Route to serve live HTML
-app.use("/live", express.static(liveDir));
 
 
   socket.on("disconnect", () =>

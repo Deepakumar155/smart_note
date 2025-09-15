@@ -31,13 +31,13 @@
     </div>
 
     <!-- Editor Section -->
-    <div class="editor-container">
+    <div class="editor-container" style="flex:1; display:flex; flex-direction:column;">
       <div class="editor-topbar">
         <button id="saveBtn">💾 Save</button>
         <button id="uploadBtn">📤 Upload</button>
         <button id="downloadBtn">📥 Download</button>
+        <button id="previewBtn">🌐 Preview</button>
           <button id="runBtn">▶️ Run</button>
-          <button id="goLiveBtn">🌐 Go Live</button>
         <button id="notesBtn">📝 Notes</button>
         <span id="status"></span>
 
@@ -45,6 +45,14 @@
       <textarea id="code"></textarea>
     </div>
   </div>
+  <!-- Preview Section (hidden until used) -->
+<div class="preview-section" id="previewSection" 
+     style="display:none; border-top:2px solid #444; height:400px;">
+  <h3 style="margin:0; padding:5px; background:#222; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+    🌐 HTML Preview
+    <button id="closePreview" style="background:red; color:white; border:none; cursor:pointer;">✖</button>
+  </h3>
+  <iframe id="previewFrame" style="width:100%; height:100%; border:none;"></iframe>
   <!-- Terminal Output -->
 <div class="terminal-panel" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:#0f0; padding:10px; height:200px; overflow-y:auto; transform:translateY(100%); transition:0.3s;">
   <div style="display:flex; justify-content:space-between; align-items:center;">

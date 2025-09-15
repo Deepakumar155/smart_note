@@ -229,20 +229,18 @@ runBtn.addEventListener("click", async () => {
 closeTerminal.addEventListener("click", () => {
   terminalPanel.style.transform = "translateY(100%)";
 });
+// --- Preview in New Window ---
+const previewBtn = document.getElementById("previewBtn");
 
-// --- Go Live ---
-const goLiveBtn = document.getElementById("goLiveBtn");
-
-goLiveBtn.addEventListener("click", () => {
+previewBtn.addEventListener("click", () => {
   if (!currentFilename.endsWith(".html")) {
-    statusEl.innerText = "❌ Go Live works only with .html files";
+    alert("⚠️ Preview only works for HTML files!");
     return;
   }
 
-  socket.emit("go-live", {
-    filename: currentFilename,
-    content: editor.getValue(),
-  });
-  statusEl.innerText = `🚀 Live preview launched for ${currentFilename}`;
-  window.open(`/live/${currentFilename}`, "_blank");
+  const previewWindow = window.open("", "_blank");
+  previewWindow.document.open();
+  previewWindow.document.write(editor.getValue());
+  previewWindow.document.close();
 });
+

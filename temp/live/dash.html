@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome | Employee Management System</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="welcome-container">
+    <div class="welcome-box animate-slide">
+      <h1>🚀 Welcome to EMS Portal</h1>
+      <p>Manage your team, tasks, reports, and salary seamlessly.</p>
+      <div class="button-group">
+        <a href="login.html" class="btn login-btn">🔐 Login</a>
+        <a href="register.html" class="btn about-btn">📘 register</a>
+      </div>
+    </div>
+  </div>
+<script src="/socket.io/socket.io.js"></script>
+     <script>
+       const s = io();
+       s.on("reload-live", (fname) => {
+         if (window.location.pathname.endsWith(fname)) {
+           location.reload();
+         }
+       });
+     </script></body>
+</html>

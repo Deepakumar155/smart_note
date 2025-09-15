@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Smart Collab Editor</title>
+  <link rel="stylesheet" href="about.css">
+</head>
+<body>
+  <!-- Navigation -->
+<nav class="navbar">
+  <div class="logo">Smart Collab</div>
+
+  <ul class="nav-links">
+    <li><a href="editor.html">Home</a></li>
+    <li><a href="About.html">About</a></li>
+
+  </ul>
+
+  <!-- Hamburger menu -->
+  <div class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</nav>
+  <div class="about-container">
+    <h1>About Smart Collab Editor</h1>
+    <p>
+      Smart Collab Editor is a real-time collaborative code editor with built-in notes.  
+      Multiple users can work together seamlessly on the same document, with instant updates.  
+      The editor is designed for developers, students, and teams who want to code, share, and collaborate effectively.
+    </p>
+    <p>
+      The project uses <strong>Node.js, Express, Socket.IO, MongoDB, and CodeMirror</strong>  
+      to deliver a smooth collaboration experience.
+    </p>
+
+    <div class="author">
+      👨‍💻 Created by <span style="color:#e63946;">Deepakumar</span>
+    </div>
+  </div>
+  <script>
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.querySelector(".nav-links");
+
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("active");
+    hamburger.classList.toggle("open");
+  });
+</script>
+
+
+<script src="/socket.io/socket.io.js"></script>
+     <script>
+       const s = io();
+       s.on("reload-live", (fname) => {
+         if (window.location.pathname.endsWith(fname)) {
+           location.reload();
+         }
+       });
+     </script></body>
+</html>
