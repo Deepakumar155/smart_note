@@ -200,7 +200,6 @@ const closeTerminal = document.getElementById("closeTerminal");
 
 runBtn.addEventListener("click", async () => {
   if (!currentFilename) return;
-  terminal.innerText = "⏳ Running...\n";
   terminalPanel.style.transform = "translateY(0)";
 
   let language = "javascript";
