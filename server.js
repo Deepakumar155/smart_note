@@ -274,6 +274,13 @@ io.on("connection", (socket) => {
       socket.emit("terminal-output", `❌ Error: ${err.message}`);
     }
   });
+  socket.on("track-edit", async ({ docId, filename, line, user, timestamp }) => {
+  await Document.updateOne(
+    { roomId: docId, "files.filename": filename },
+    { $set: { [`files.$.editHistory.${line}`]: { user, timestamp } } }
+  );
+});
+
 
 
   socket.on("disconnect", () =>

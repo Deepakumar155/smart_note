@@ -259,3 +259,93 @@ previewBtn.addEventListener("click", () => {
   previewWindow.document.write(editor.getValue());
   previewWindow.document.close();
 });
+// client-side (editor.js)
+let lineLocks = {}; // { lineNumber: username }
+
+editor.on("beforeChange", (instance, changeObj) => {
+  const fromLine = changeObj.from.line;
+  const toLine = changeObj.to.line;
+
+  // Check if any line in the range is locked
+  for (let l = fromLine; l <= toLine; l++) {
+    if (lineLocks[l] && lineLocks[l] !== currentUsername) {
+      changeObj.cancel(); // Prevent the change
+      statusEl.innerText = `⚠️ Line ${l+1} is being edited by ${lineLocks[l]}`;
+      return;
+    }
+  }
+
+  // Lock all lines being edited
+  for (let l = fromLine; l <= toLine; l++) {
+    lineLocks[l] = currentUsername;
+  }
+
+  socket.emit("lock-lines", {
+    docId: currentDocId,
+    filename: currentFilename,
+    lines: [...Array(toLine - fromLine + 1).keys()].map(i => i + fromLine),
+    user: currentUsername,
+  });
+});
+
+editor.on("cursorActivity", () => {
+  // Unlock lines that were previously locked by this user
+  const cursorLine = editor.getCursor().line;
+  for (let line in lineLocks) {
+    if (lineLocks[line] === currentUsername && line != cursorLine) {
+      delete lineLocks[line];
+      socket.emit("unlock-line", {
+        docId: currentDocId,
+        filename: currentFilename,
+        line: parseInt(line),
+      });
+    }
+  }
+});
+let documentLineLocks = {}; 
+// { docId: { filename: { lineNumber: username } } }
+
+io.on("connection", (socket) => {
+  // Lock lines
+  socket.on("lock-lines", ({ docId, filename, lines, user }) => {
+    if (!documentLineLocks[docId]) documentLineLocks[docId] = {};
+    if (!documentLineLocks[docId][filename]) documentLineLocks[docId][filename] = {};
+
+    lines.forEach((line) => {
+      documentLineLocks[docId][filename][line] = user;
+    });
+
+    // Notify others
+    socket.to(`doc:${docId}:${filename}`).emit("line-locked", { lines, user });
+  });
+
+  // Unlock line
+  socket.on("unlock-line", ({ docId, filename, line }) => {
+    if (documentLineLocks[docId] && documentLineLocks[docId][filename]) {
+      delete documentLineLocks[docId][filename][line];
+      socket.to(`doc:${docId}:${filename}`).emit("line-unlocked", { line });
+    }
+  });
+});
+socket.on("line-locked", ({ lines, user }) => {
+  lines.forEach(line => {
+    editor.addLineClass(line, "wrap", "line-locked");
+  });
+});
+
+socket.on("line-unlocked", ({ line }) => {
+  editor.removeLineClass(line, "wrap", "line-locked");
+});
+editor.on("change", (instance, changeObj) => {
+  const line = changeObj.from.line;
+  const timestamp = new Date().toLocaleString();
+
+  socket.emit("track-edit", {
+    docId: currentDocId,
+    filename: currentFilename,
+    line,
+    user: currentUsername,
+    timestamp,
+  });
+});
+
