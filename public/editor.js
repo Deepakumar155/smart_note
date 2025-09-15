@@ -16,6 +16,7 @@ function getModeByFilename(filename) {
   return "javascript"; // default
 }
 
+
 window.addEventListener("load", () => {
   editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     lineNumbers: true,
@@ -42,7 +43,6 @@ window.addEventListener("load", () => {
       filename: currentFilename,
     });
     statusEl.innerText = `🔗 Joined ${currentDocId}/${currentFilename}`;
-    
   }
 
   // --- File Handling ---
@@ -86,10 +86,6 @@ window.addEventListener("load", () => {
     });
     statusEl.innerText = `🔗 Switched to ${filename}`;
     loadFiles();
-
-    // Update editor mode
-    const mode = getModeByFilename(filename);
-    editor.setOption("mode", mode);
   }
 
   addFileBtn.addEventListener("click", addFile);
@@ -103,10 +99,6 @@ window.addEventListener("load", () => {
     notesEl.value = notes || "";
     currentFilename = filename;
     loadFiles();
-
-    // Set correct syntax highlighting
-    const mode = getModeByFilename(filename);
-    editor.setOption("mode", mode);
   });
 
   editor.on("change", (instance, changeObj) => {
@@ -152,7 +144,7 @@ window.addEventListener("load", () => {
 
   socket.on("error-msg", (msg) => (statusEl.innerText = `❌ ${msg}`));
 
-  // --- Notes toggle ---
+  // Notes toggle
   const notesBtn = document.getElementById("notesBtn");
   const notesPanel = document.getElementById("notesPanel");
   const closeNotes = document.getElementById("closeNotes");
@@ -170,7 +162,6 @@ window.addEventListener("load", () => {
 const uploadBtn = document.getElementById("uploadBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const fileInput = document.getElementById("fileInput");
-const statusEl = document.getElementById("status");
 
 uploadBtn.addEventListener("click", () => fileInput.click());
 

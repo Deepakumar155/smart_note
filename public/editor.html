@@ -4,27 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Collab Editor</title>
-<!-- CodeMirror CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/eclipse.min.css">
-
-<!-- Your custom CSS -->
 <link rel="stylesheet" href="editor.css">
 
-<!-- CodeMirror JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
-
-<!-- Socket.IO -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-
 </head>
 <body>
 <nav class="navbar">
@@ -46,13 +31,13 @@
     </div>
 
     <!-- Editor Section -->
-    <div class="editor-container" style="flex:1; display:flex; flex-direction:column;">
+    <div class="editor-container">
       <div class="editor-topbar">
         <button id="saveBtn">💾 Save</button>
         <button id="uploadBtn">📤 Upload</button>
         <button id="downloadBtn">📥 Download</button>
-        <button id="previewBtn">🌐 Golive</button>
           <button id="runBtn">▶️ Run</button>
+          <button id="previewBtn">🌐 Golive</button>
         <button id="notesBtn">📝 Notes</button>
         <span id="status"></span>
 
@@ -60,14 +45,6 @@
       <textarea id="code"></textarea>
     </div>
   </div>
-  <!-- Preview Section (hidden until used) -->
-<div class="preview-section" id="previewSection" 
-     style="display:none; border-top:2px solid #444; height:400px;">
-  <h3 style="margin:0; padding:5px; background:#222; color:#fff; display:flex; justify-content:space-between; align-items:center;">
-    🌐 HTML Preview
-    <button id="closePreview" style="background:red; color:white; border:none; cursor:pointer;">✖</button>
-  </h3>
-  <iframe id="previewFrame" style="width:100%; height:100%; border:none;"></iframe>
   <!-- Terminal Output -->
 <div class="terminal-panel" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:#0f0; padding:10px; height:200px; overflow-y:auto; transform:translateY(100%); transition:0.3s;">
   <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -89,6 +66,14 @@
   </div>
   <textarea id="notes"></textarea>
 </div>
+  <!-- Preview Section (hidden until used) -->
+<div class="preview-section" id="previewSection" 
+     style="display:none; border-top:2px solid #444; height:400px;">
+  <h3 style="margin:0; padding:5px; background:#222; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+    🌐 HTML Preview
+    <button id="closePreview" style="background:red; color:white; border:none; cursor:pointer;">✖</button>
+  </h3>
+  <iframe id="previewFrame" style="width:100%; height:100%; border:none;"></iframe>
 
 <script src="editor.js"></script>
 </body>
